@@ -1,0 +1,36 @@
+<!--
+  Accessibility Widget — install snippet.
+  Paste this once, ideally just before </body>. Two parts:
+
+  1) CRITICAL SHIM (inline, blocking, ~0.5kb): reads saved prefs and applies
+     them to <html> BEFORE first paint, so returning visitors never see a flash
+     of un-adjusted content (no FOUC). It mirrors the data-a11y-* contract the
+     main bundle uses.
+
+  2) MAIN BUNDLE (async): the full widget. Loads without blocking parsing.
+
+  Replace CDN_URL with your CDN (e.g. a jsDelivr GitHub-tag URL).
+  Optional data-* overrides: data-position, data-accent, data-site-key.
+-->
+<script>
+  (function () {
+    try {
+      var raw = localStorage.getItem("a11y:state:" + location.hostname);
+      if (!raw) return;
+      var s = JSON.parse(raw);
+      var h = document.documentElement;
+      if (s.contrast && s.contrast !== "none") h.setAttribute("data-a11y-contrast", s.contrast);
+      if (s.spacing && s.spacing !== "normal") h.setAttribute("data-a11y-spacing", s.spacing);
+      if (s.readableFont) h.setAttribute("data-a11y-readable-font", "");
+      if (s.highlightLinks) h.setAttribute("data-a11y-highlight-links", "");
+      if (s.highlightHeaders) h.setAttribute("data-a11y-highlight-headers", "");
+      if (s.stopAnimations) h.setAttribute("data-a11y-stop-animations", "");
+      if (s.bigCursor) h.setAttribute("data-a11y-big-cursor", "");
+      if (s.fontScale && s.fontScale !== 1) {
+        h.setAttribute("data-a11y-fontscale", "");
+        h.style.setProperty("--a11y-font-scale", String(s.fontScale));
+      }
+    } catch (e) {}
+  })();
+</script>
+<script src="CDN_URL/a11y.js" data-a11y async defer></script>

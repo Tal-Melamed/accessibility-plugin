@@ -1,0 +1,16 @@
+{
+  "name": "@accessibility-plugin/widget",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Platform-agnostic accessibility widget (RTL/Hebrew) — WCAG 2.1 AA, Israeli 2013 regulations",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vite": "^7.3.1"
+  }
+}
