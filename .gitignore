@@ -10,6 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+# Exception: the widget CDN bundle must be committed so jsDelivr can serve it.
+!widget/dist/
+!widget/dist/a11y.js
 .output
 .vinxi
 .tanstack/**
