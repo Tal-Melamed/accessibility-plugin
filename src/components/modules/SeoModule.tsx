@@ -159,7 +159,7 @@ export function SeoModule({ site }: { site: Site }) {
 
       <SeoAiAgent site={site} />
 
-      <SeoGoogle />
+      <SeoGoogle site={site} />
 
       <div className="grid gap-4 md:grid-cols-3">
         <GeneratorCard title="robots.txt" filename="robots.txt" description="גישה לבוטים של AI + הפניה ל-sitemap." content={generateRobotsTxt(site.domain)} />

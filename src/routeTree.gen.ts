@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardSitesSiteIdRouteImport } from './routes/dashboard/sites/$siteId'
+import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -34,17 +35,24 @@ const DashboardSitesSiteIdRoute = DashboardSitesSiteIdRouteImport.update({
   path: '/dashboard/sites/$siteId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
+  id: '/auth/google/callback',
+  path: '/auth/google/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dashboard/sites/$siteId': typeof DashboardSitesSiteIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dashboard/sites/$siteId': typeof DashboardSitesSiteIdRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,38 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dashboard/sites/$siteId': typeof DashboardSitesSiteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/dashboard/' | '/dashboard/sites/$siteId'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/dashboard/'
+    | '/auth/google/callback'
+    | '/dashboard/sites/$siteId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard' | '/dashboard/sites/$siteId'
-  id: '__root__' | '/' | '/login' | '/dashboard/' | '/dashboard/sites/$siteId'
+  to:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/auth/google/callback'
+    | '/dashboard/sites/$siteId'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/dashboard/'
+    | '/auth/google/callback'
+    | '/dashboard/sites/$siteId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
   DashboardSitesSiteIdRoute: typeof DashboardSitesSiteIdRoute
 }
 
@@ -99,6 +125,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSitesSiteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/google/callback': {
+      id: '/auth/google/callback'
+      path: '/auth/google/callback'
+      fullPath: '/auth/google/callback'
+      preLoaderRoute: typeof AuthGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -106,6 +139,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
   DashboardSitesSiteIdRoute: DashboardSitesSiteIdRoute,
 }
 export const routeTree = rootRouteImport
