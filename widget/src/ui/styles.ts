@@ -23,7 +23,7 @@ export function buildStyles(): string {
 .a11y-trigger:hover { background: #1f2937; transform: scale(1.1); }
 .a11y-trigger:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .a11y-trigger svg { width: 18px; height: 18px; fill: currentColor; }
-@media (max-width: 768px) { .a11y-trigger { bottom: 80px; } }
+@media (max-width: 768px) { .a11y-trigger { left: 16px; bottom: 16px; } }
 
 /* ---- Panel ---- */
 .a11y-panel {
@@ -35,7 +35,7 @@ export function buildStyles(): string {
   transition: opacity .15s ease, transform .15s ease, visibility .15s;
 }
 .a11y-panel[data-open="true"] { opacity: 1; visibility: visible; transform: translateY(0); }
-@media (max-width: 768px) { .a11y-panel { bottom: 136px; } }
+@media (max-width: 768px) { .a11y-panel { left: 16px; bottom: 64px; } }
 
 .a11y-header {
   display: flex; align-items: center; justify-content: space-between;
