@@ -2,12 +2,25 @@
 // (see seoAudit.ts) because browsers can't fetch other origins (CORS).
 
 export type CheckStatus = "pass" | "warn" | "fail";
+export type Severity = "high" | "medium" | "low";
+export type CheckGroup = "indexing" | "onpage" | "ai" | "links" | "content";
 
 export interface SeoCheck {
   id: string;
   label: string;
   status: CheckStatus;
   detail: string;
+  group: CheckGroup;
+}
+
+// An actionable item derived from a failing/warning check. Nothing is applied
+// automatically — the user chooses. `action` links to a generator when relevant.
+export interface Recommendation {
+  id: string;
+  title: string;
+  severity: Severity;
+  why: string;
+  action: "robots" | "sitemap" | "llms" | null;
 }
 
 export interface SeoAudit {
@@ -15,7 +28,10 @@ export interface SeoAudit {
   url: string;
   ok: boolean; // homepage reachable
   checks: SeoCheck[];
+  recommendations: Recommendation[];
   internalLinks: string[]; // same-origin URLs discovered on the homepage
+  pagesScanned: number;
+  score: number; // 0-100
   error?: string;
 }
 

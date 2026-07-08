@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, AlertTriangle, XCircle, Loader2, Copy, Download, Play } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, Loader2, Copy, Download, Play, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { runSeoAudit } from "@/lib/seoAudit";
 import {
@@ -9,6 +9,8 @@ import {
   generateLlmsTxt,
   type SeoAudit,
   type CheckStatus,
+  type Severity,
+  type Recommendation,
 } from "@/lib/seo";
 import type { Site } from "@/lib/sites";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,12 @@ const STATUS_COLOR: Record<CheckStatus, string> = {
   pass: "text-emerald-600",
   warn: "text-amber-500",
   fail: "text-red-600",
+};
+const SEV_LABEL: Record<Severity, string> = { high: "דחוף", medium: "בינוני", low: "קל" };
+const SEV_CLASS: Record<Severity, string> = {
+  high: "bg-red-100 text-red-700",
+  medium: "bg-amber-100 text-amber-700",
+  low: "bg-muted text-muted-foreground",
 };
 
 export function SeoModule({ site }: { site: Site }) {
@@ -43,12 +51,21 @@ export function SeoModule({ site }: { site: Site }) {
     }
   };
 
-  const counts = result
-    ? result.checks.reduce(
-        (a, c) => ((a[c.status] = (a[c.status] ?? 0) + 1), a),
-        {} as Record<CheckStatus, number>,
-      )
-    : null;
+  // Apply an action-linked recommendation = generate the file to the clipboard.
+  // Nothing on the live site changes until the user deploys it.
+  const applyAction = async (rec: Recommendation) => {
+    const content =
+      rec.action === "robots"
+        ? generateRobotsTxt(site.domain)
+        : rec.action === "sitemap"
+          ? generateSitemapXml(site.domain, result?.internalLinks ?? [])
+          : rec.action === "llms"
+            ? generateLlmsTxt({ name: site.name, domain: site.domain })
+            : "";
+    if (!content) return;
+    await navigator.clipboard.writeText(content);
+    toast.success(`${rec.action} נוצר והועתק — הדביקו לאתר`);
+  };
 
   return (
     <div className="space-y-6">
@@ -57,7 +74,7 @@ export function SeoModule({ site }: { site: Site }) {
           <div>
             <CardTitle>אודיט SEO</CardTitle>
             <CardDescription>
-              סורק את <span dir="ltr">{site.domain}</span> ובודק sitemap, robots, meta, schema ועוד.
+              סורק את <span dir="ltr">{site.domain}</span> — אינדוקס, on-page, קישורים, נראוּת AI.
             </CardDescription>
           </div>
           <Button onClick={run} disabled={running}>
@@ -65,15 +82,61 @@ export function SeoModule({ site }: { site: Site }) {
             {running ? "סורק…" : "הרצת אודיט"}
           </Button>
         </CardHeader>
-        {result && (
-          <CardContent className="space-y-3">
-            {counts && (
-              <div className="flex gap-4 text-sm">
-                <span className="text-emerald-600">{counts.pass ?? 0} תקין</span>
-                <span className="text-amber-500">{counts.warn ?? 0} לשיפור</span>
-                <span className="text-red-600">{counts.fail ?? 0} בעיות</span>
+        {result?.ok && (
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <ScoreRing score={result.score} />
+              <div className="space-y-1 text-sm">
+                <div className="flex gap-4">
+                  <Count status="pass" checks={result} label="תקין" />
+                  <Count status="warn" checks={result} label="לשיפור" />
+                  <Count status="fail" checks={result} label="בעיות" />
+                </div>
+                <p className="text-xs text-muted-foreground">נסרקו {result.pagesScanned} עמודים · {result.checks.length} בדיקות</p>
               </div>
-            )}
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
+      {result?.ok && result.recommendations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>משימות מומלצות</CardTitle>
+            <CardDescription>
+              לפי סדר עדיפות. שום שינוי לא מתבצע באתר אוטומטית — אתם בוחרים מה ליישם.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {result.recommendations.map((r) => (
+              <div key={r.id} className="flex items-start justify-between gap-3 rounded-lg border px-3 py-2.5">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${SEV_CLASS[r.severity]}`}>
+                      {SEV_LABEL[r.severity]}
+                    </span>
+                    <p className="text-sm font-medium">{r.title}</p>
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{r.why}</p>
+                </div>
+                {r.action && (
+                  <Button variant="outline" size="sm" className="shrink-0" onClick={() => applyAction(r)}>
+                    <Wand2 className="ml-1 h-3.5 w-3.5" />
+                    צור קובץ
+                  </Button>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {result?.ok && (
+        <Card>
+          <CardHeader>
+            <CardTitle>כל הבדיקות</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="divide-y rounded-lg border">
               {result.checks.map((c) => {
                 const Icon = STATUS_ICON[c.status];
@@ -89,29 +152,29 @@ export function SeoModule({ site }: { site: Site }) {
               })}
             </div>
           </CardContent>
-        )}
-      </Card>
+        </Card>
+      )}
 
       <div className="grid gap-4 md:grid-cols-3">
-        <GeneratorCard
-          title="robots.txt"
-          filename="robots.txt"
-          description="כולל גישה לבוטים של AI + הפניה ל-sitemap."
-          content={generateRobotsTxt(site.domain)}
-        />
-        <GeneratorCard
-          title="sitemap.xml"
-          filename="sitemap.xml"
-          description={result ? `מבוסס על ${result.internalLinks.length} קישורים שנמצאו.` : "הריצו אודיט לגילוי עמודים."}
-          content={generateSitemapXml(site.domain, result?.internalLinks ?? [])}
-        />
-        <GeneratorCard
-          title="llms.txt"
-          filename="llms.txt"
-          description="נראוּת ל-ChatGPT/Claude. השלימו את הפרטים."
-          content={generateLlmsTxt({ name: site.name, domain: site.domain })}
-        />
+        <GeneratorCard title="robots.txt" filename="robots.txt" description="גישה לבוטים של AI + הפניה ל-sitemap." content={generateRobotsTxt(site.domain)} />
+        <GeneratorCard title="sitemap.xml" filename="sitemap.xml" description={result ? `מבוסס על ${result.internalLinks.length} קישורים.` : "הריצו אודיט לגילוי עמודים."} content={generateSitemapXml(site.domain, result?.internalLinks ?? [])} />
+        <GeneratorCard title="llms.txt" filename="llms.txt" description="נראוּת ל-ChatGPT/Claude. השלימו פרטים." content={generateLlmsTxt({ name: site.name, domain: site.domain })} />
       </div>
+    </div>
+  );
+}
+
+function Count({ status, checks, label }: { status: CheckStatus; checks: SeoAudit; label: string }) {
+  const n = checks.checks.filter((c) => c.status === status).length;
+  return <span className={STATUS_COLOR[status]}>{n} {label}</span>;
+}
+
+function ScoreRing({ score }: { score: number }) {
+  const color = score >= 80 ? "text-emerald-600" : score >= 50 ? "text-amber-500" : "text-red-600";
+  return (
+    <div className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-full border-4 border-current/15">
+      <span className={`text-2xl font-bold ${color}`}>{score}</span>
+      <span className="text-[10px] text-muted-foreground">ציון</span>
     </div>
   );
 }
